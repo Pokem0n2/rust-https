@@ -21,7 +21,7 @@ pub struct HttpResponse {
 }
 
 #[tauri::command]
-pub async fn send_http_request(request: HttpRequest) -> Result<HttpResponse, String> {
+async fn send_http_request(request: HttpRequest) -> Result<HttpResponse, String> {
     let start = Instant::now();
 
     let client = reqwest::Client::new();
