@@ -37,9 +37,12 @@ const METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 function App() {
   const [request, setRequest] = useState<Request>({
     method: "GET",
-    url: "https://httpbin.org/get",
-    headers: [{ key: "Content-Type", value: "application/json", enabled: true }],
-    params: [],
+    url: "https://api.minimaxi.com/v1/query/video_generation",
+    headers: [{ key: "Authorization", value: "Bearer API_KEY", enabled: false }],
+    params: [
+      { key: "task_id", value: "391987368563074", enabled: false },
+      { key: "file_id", value: "391854176137443", enabled: false },
+    ],
     body: "",
   });
   const [response, setResponse] = useState<Response | null>(null);
