@@ -257,6 +257,7 @@ body {
 .tab-content {
   flex: 1;
   overflow: hidden;
+  text-align: left;
 }
 
 /* Headers Panel */
@@ -484,6 +485,7 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
   color: var(--text-secondary);
+  text-align: left;
 }
 
 /* Spinner */

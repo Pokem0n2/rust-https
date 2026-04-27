@@ -8,10 +8,17 @@ interface Header {
   enabled: boolean;
 }
 
+interface Param {
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
 interface Request {
   method: string;
   url: string;
   headers: Header[];
+  params: Param[];
   body: string;
 }
 
@@ -23,6 +30,8 @@ interface Response {
   time_ms: number;
 }
 
+type Tab = "params" | "headers" | "body" | "response";
+
 const METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 
 function App() {
@@ -30,13 +39,25 @@ function App() {
     method: "GET",
     url: "https://httpbin.org/get",
     headers: [{ key: "Content-Type", value: "application/json", enabled: true }],
+    params: [],
     body: "",
   });
   const [response, setResponse] = useState<Response | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"headers" | "body" | "response">("headers");
+  const [activeTab, setActiveTab] = useState<Tab>("params");
   const [history, setHistory] = useState<{ url: string; method: string; status?: number }[]>([]);
   const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const buildUrl = (url: string, params: Param[]): string => {
+    const enabledParams = params.filter((p) => p.enabled && p.key.trim());
+    if (enabledParams.length === 0) return url;
+
+    const searchParams = new URLSearchParams();
+    enabledParams.forEach((p) => searchParams.append(p.key, p.value));
+
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}${searchParams.toString()}`;
+  };
 
   const addHeader = () => {
     setRequest((r) => ({
@@ -59,6 +80,27 @@ function App() {
     }));
   };
 
+  const addParam = () => {
+    setRequest((r) => ({
+      ...r,
+      params: [...r.params, { key: "", value: "", enabled: true }],
+    }));
+  };
+
+  const removeParam = (index: number) => {
+    setRequest((r) => ({
+      ...r,
+      params: r.params.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateParam = (index: number, field: keyof Param, value: string | boolean) => {
+    setRequest((r) => ({
+      ...r,
+      params: r.params.map((p, i) => (i === index ? { ...p, [field]: value } : p)),
+    }));
+  };
+
   const sendRequest = async () => {
     setLoading(true);
     setResponse(null);
@@ -71,11 +113,13 @@ function App() {
         enabledHeaders[h.key] = h.value;
       });
 
+    const finalUrl = buildUrl(request.url, request.params);
+
     try {
       const result = await invoke<Response>("send_http_request", {
         request: {
           method: request.method,
-          url: request.url,
+          url: finalUrl,
           headers: enabledHeaders,
           body: request.body || null,
         },
@@ -96,16 +140,12 @@ function App() {
   };
 
   const formatJson = (str: string, contentType?: string) => {
-    // Check if it's JSON by content-type header or string pattern
-    const isJson = contentType?.toLowerCase().includes('json') ||
-      str.trim().startsWith('{') ||
-      str.trim().startsWith('[');
-
+    const isJson = contentType?.toLowerCase().includes("json") ||
+      str.trim().startsWith("{") ||
+      str.trim().startsWith("[");
     if (!isJson) return str;
-
     try {
-      const parsed = JSON.parse(str);
-      return JSON.stringify(parsed, null, 2);
+      return JSON.stringify(JSON.parse(str), null, 2);
     } catch {
       return str;
     }
@@ -113,7 +153,7 @@ function App() {
 
   const getContentType = (headers: Record<string, string>): string | undefined => {
     for (const [key, value] of Object.entries(headers)) {
-      if (key.toLowerCase() === 'content-type') return value;
+      if (key.toLowerCase() === "content-type") return value;
     }
     return undefined;
   };
@@ -149,9 +189,7 @@ function App() {
             >
               <span className={`method ${h.method.toLowerCase()}`}>{h.method}</span>
               <span className="history-url">{h.url.slice(0, 20)}...</span>
-              {h.status && (
-                <span className="status-dot" style={{ background: getStatusColor(h.status) }} />
-              )}
+              {h.status && <span className="status-dot" style={{ background: getStatusColor(h.status) }} />}
             </button>
           ))}
         </div>
@@ -195,6 +233,13 @@ function App() {
           {/* Request Tabs */}
           <div className="tabs">
             <button
+              className={`tab ${activeTab === "params" ? "active" : ""}`}
+              onClick={() => setActiveTab("params")}
+            >
+              Params
+              <span className="tab-count">{request.params.filter((p) => p.enabled).length}</span>
+            </button>
+            <button
               className={`tab ${activeTab === "headers" ? "active" : ""}`}
               onClick={() => setActiveTab("headers")}
             >
@@ -213,10 +258,7 @@ function App() {
             >
               Response
               {response && (
-                <span
-                  className="status-badge"
-                  style={{ background: getStatusColor(response.status) }}
-                >
+                <span className="status-badge" style={{ background: getStatusColor(response.status) }}>
                   {response.status}
                 </span>
               )}
@@ -225,6 +267,44 @@ function App() {
 
           {/* Tab Content */}
           <div className="tab-content">
+            {activeTab === "params" && (
+              <div className="headers-panel">
+                <div className="headers-list">
+                  {request.params.map((param, i) => (
+                    <div key={i} className={`header-row ${param.enabled ? "" : "disabled"}`}>
+                      <input
+                        type="checkbox"
+                        checked={param.enabled}
+                        onChange={(e) => updateParam(i, "enabled", e.target.checked)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        value={param.key}
+                        onChange={(e) => updateParam(i, "key", e.target.value)}
+                        className="header-input key"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value"
+                        value={param.value}
+                        onChange={(e) => updateParam(i, "value", e.target.value)}
+                        className="header-input value"
+                      />
+                      <button className="remove-btn" onClick={() => removeParam(i)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button className="add-header-btn" onClick={addParam}>
+                  + Add Param
+                </button>
+              </div>
+            )}
+
             {activeTab === "headers" && (
               <div className="headers-panel">
                 <div className="headers-list">
@@ -304,10 +384,7 @@ function App() {
                     <div className="response-meta">
                       <div className="meta-item">
                         <span className="meta-label">Status</span>
-                        <span
-                          className="meta-value status"
-                          style={{ color: getStatusColor(response.status) }}
-                        >
+                        <span className="meta-value status" style={{ color: getStatusColor(response.status) }}>
                           {response.status} {response.status_text}
                         </span>
                       </div>
@@ -317,9 +394,7 @@ function App() {
                       </div>
                       <div className="meta-item">
                         <span className="meta-label">Size</span>
-                        <span className="meta-value">
-                          {(response.body.length / 1024).toFixed(2)} KB
-                        </span>
+                        <span className="meta-value">{(response.body.length / 1024).toFixed(2)} KB</span>
                       </div>
                     </div>
                     <div className="response-body-wrapper">
