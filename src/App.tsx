@@ -95,12 +95,27 @@ function App() {
     }
   };
 
-  const formatJson = (str: string) => {
+  const formatJson = (str: string, contentType?: string) => {
+    // Check if it's JSON by content-type header or string pattern
+    const isJson = contentType?.toLowerCase().includes('json') ||
+      str.trim().startsWith('{') ||
+      str.trim().startsWith('[');
+
+    if (!isJson) return str;
+
     try {
-      return JSON.stringify(JSON.parse(str), null, 2);
+      const parsed = JSON.parse(str);
+      return JSON.stringify(parsed, null, 2);
     } catch {
       return str;
     }
+  };
+
+  const getContentType = (headers: Record<string, string>): string | undefined => {
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() === 'content-type') return value;
+    }
+    return undefined;
   };
 
   const getStatusColor = (status: number) => {
@@ -308,7 +323,7 @@ function App() {
                       </div>
                     </div>
                     <div className="response-body-wrapper">
-                      <pre className="response-body">{formatJson(response.body)}</pre>
+                      <pre className="response-body">{formatJson(response.body, getContentType(response.headers))}</pre>
                     </div>
                   </>
                 )}
