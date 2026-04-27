@@ -2,13 +2,12 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "RustHTTPS",
   "version": "0.1.0",
-  "identifier": "com.rust-https.app",
+  "identifier": "com.rusthttps.client",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
-    "devtools": true
+    "beforeBuildCommand": "npm run build"
   },
   "app": {
     "windows": [
