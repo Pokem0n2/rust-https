@@ -5,6 +5,7 @@
 }
 
 :root {
+  /* Dark theme (default) */
   --bg-primary: #0f1117;
   --bg-secondary: #161921;
   --bg-tertiary: #1e222d;
@@ -19,6 +20,19 @@
   --warning: #eab308;
   --error: #ef4444;
   --orange: #f97316;
+}
+
+.app.light {
+  --bg-primary: #f8f9fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f3f7;
+  --bg-hover: #e8ebf0;
+  --border: #d8dbe3;
+  --text-primary: #1a1d26;
+  --text-secondary: #5c6370;
+  --text-muted: #8b919e;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
 }
 
 body {
@@ -46,6 +60,12 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -57,6 +77,68 @@ body {
 
 .logo svg {
   color: var(--accent);
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.theme-icon.active {
+  color: var(--accent);
+}
+
+.theme-icon.sun {
+  color: #f59e0b;
+}
+
+.theme-icon.moon {
+  color: #6366f1;
+}
+
+.toggle-switch {
+  width: 36px;
+  height: 20px;
+  background: var(--bg-hover);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.toggle-knob {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.light .toggle-knob {
+  transform: translateX(16px);
+  background: #f59e0b;
 }
 
 .history-mini {
@@ -528,3 +610,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Light theme input focus */
+.light .url-input:focus,
+.light .header-input:focus,
+.light .body-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Light theme method select */
+.light .method-select.get { color: #16a34a; border-color: #16a34a; }
+.light .method-select.post { color: #2563eb; border-color: #2563eb; }
+.light .method-select.put { color: #ea580c; border-color: #ea580c; }
+.light .method-select.delete { color: #dc2626; border-color: #dc2626; }
+.light .method-select.patch { color: #9333ea; border-color: #9333ea; }
