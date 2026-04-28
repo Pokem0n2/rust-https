@@ -87,6 +87,9 @@ The executable will be located at `src-tauri/target/release/rust-https.exe`.
 └─────────────────────────────────────────────────────────┘
 ```
 
+<img width="1200" height="828" alt="image" src="https://github.com/user-attachments/assets/fa52eb04-dd0c-4e71-a8bb-b720ee08c970" />
+
+
 ## License
 
 MIT
